@@ -1,6 +1,6 @@
 require('dotenv').config();
 const path = require('path');
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 
 let db;
 let isPostgres = false;
@@ -42,48 +42,62 @@ if (process.env.DATABASE_URL) {
 const initDb = async () => {
     try {
         // Table Utilisateurs (Admins)
-        const usersTable = isPostgres 
-            ? `CREATE TABLE IF NOT EXISTS users (
+        if (isPostgres) {
+            await db.query(`CREATE TABLE IF NOT EXISTS users (
                 id SERIAL PRIMARY KEY, 
-                nom VARCHAR(50) NOT NULL,
-                prenom VARCHAR(50) NOT NULL,
-                email VARCHAR(50) UNIQUE NOT NULL, 
+                nom VARCHAR(50) DEFAULT 'Admin',
+                prenom VARCHAR(50) DEFAULT 'User',
+                email VARCHAR(50) UNIQUE, 
                 mot_de_passe TEXT NOT NULL, 
                 role TEXT DEFAULT 'admin'
-            )`
-            : `CREATE TABLE IF NOT EXISTS users (
+            )`);
+            // Migration douce pour users si email manque
+            try { await db.query("ALTER TABLE users ADD COLUMN IF NOT EXISTS nom VARCHAR(50) DEFAULT 'Admin'"); } catch(e){}
+            try { await db.query("ALTER TABLE users ADD COLUMN IF NOT EXISTS prenom VARCHAR(50) DEFAULT 'User'"); } catch(e){}
+            try { await db.query("ALTER TABLE users ADD COLUMN IF NOT EXISTS email VARCHAR(50) UNIQUE"); } catch(e){}
+        } else {
+            await db.query(`CREATE TABLE IF NOT EXISTS users (
                 id INTEGER PRIMARY KEY AUTOINCREMENT, 
-                nom TEXT NOT NULL,
-                prenom TEXT NOT NULL,
-                email TEXT UNIQUE NOT NULL, 
+                nom TEXT DEFAULT 'Admin',
+                prenom TEXT DEFAULT 'User',
+                email TEXT UNIQUE, 
                 mot_de_passe TEXT NOT NULL, 
                 role TEXT DEFAULT 'admin'
-            )`;
-        await db.query(usersTable);
+            )`);
+        }
 
         // Table Membres
-        const membersTable = isPostgres
-            ? `CREATE TABLE IF NOT EXISTS members (
+        if (isPostgres) {
+            await db.query(`CREATE TABLE IF NOT EXISTS members (
                 id SERIAL PRIMARY KEY, 
                 nom VARCHAR(50) NOT NULL, 
                 prenom VARCHAR(50) NOT NULL, 
                 classe VARCHAR(10) NOT NULL, 
-                filiere VARCHAR(50) NOT NULL,
-                telephone VARCHAR(20) NOT NULL,
+                filiere VARCHAR(50) DEFAULT 'N/A',
+                telephone VARCHAR(20) DEFAULT 'N/A',
                 nb_participation INTEGER DEFAULT 0, 
                 date_inscription TIMESTAMP DEFAULT '2026-03-10 13:15:00'
-            )`
-            : `CREATE TABLE IF NOT EXISTS members (
+            )`);
+            // Migration automatique PostgreSQL
+            try { await db.query("ALTER TABLE members ADD COLUMN IF NOT EXISTS filiere VARCHAR(50) DEFAULT 'N/A'"); } catch(e){}
+            try { await db.query("ALTER TABLE members ADD COLUMN IF NOT EXISTS telephone VARCHAR(20) DEFAULT 'N/A'"); } catch(e){}
+            try { await db.query("ALTER TABLE members ADD COLUMN IF NOT EXISTS nb_participation INTEGER DEFAULT 0"); } catch(e){}
+        } else {
+            await db.query(`CREATE TABLE IF NOT EXISTS members (
                 id INTEGER PRIMARY KEY AUTOINCREMENT, 
                 nom TEXT NOT NULL, 
                 prenom TEXT NOT NULL, 
                 classe TEXT NOT NULL, 
-                filiere TEXT NOT NULL,
-                telephone TEXT NOT NULL,
+                filiere TEXT DEFAULT 'N/A',
+                telephone TEXT DEFAULT 'N/A',
                 nb_participation INTEGER DEFAULT 0, 
                 date_inscription TEXT DEFAULT '2026-03-10 13:15:00'
-            )`;
-        await db.query(membersTable);
+            )`);
+            // Migration SQLite si besoin
+            try { await db.query("ALTER TABLE members ADD COLUMN filiere TEXT DEFAULT 'N/A'"); } catch(e){}
+            try { await db.query("ALTER TABLE members ADD COLUMN telephone TEXT DEFAULT 'N/A'"); } catch(e){}
+            try { await db.query("ALTER TABLE members ADD COLUMN nb_participation INTEGER DEFAULT 0"); } catch(e){}
+        }
 
         // Admin par défaut
         const adminPassword = await bcrypt.hash('admin123', 10);
@@ -95,7 +109,7 @@ const initDb = async () => {
         }
 
     } catch (err) {
-        console.error("Erreur d'initialisation DB V2:", err);
+        console.error("Erreur critique initialisation DB:", err);
     }
 };
 
