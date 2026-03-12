@@ -35,6 +35,9 @@ const isAuthenticated = (req, res, next) => {
     else res.redirect('/auth/login');
 };
 
+// Initialisation conditionnelle du schéma
+db.ensureSchema();
+
 app.get('/', (req, res) => {
     res.render('index', { title: 'Accueil', user: req.session.user || null });
 });
@@ -46,7 +49,7 @@ app.get('/dashboard', async (req, res) => {
         
         // Calcul des stats
         const total = members.length;
-        const participations = members.reduce((sum, m) => sum + m.nb_participation, 0);
+        const participations = members.reduce((sum, m) => sum + (m.nb_participation || 0), 0);
         const uniqueClasses = new Set(members.map(m => m.classe)).size;
 
         res.render('dashboard', { 
@@ -56,11 +59,13 @@ app.get('/dashboard', async (req, res) => {
             stats: { total, participations, classes: uniqueClasses }
         });
     } catch (err) {
-        console.error(err);
-        res.status(500).send("Erreur de base de données");
+        console.error("Dashboard error:", err);
+        res.status(500).send("Erreur de base de données : " + err.message);
     }
 });
 
 app.listen(PORT, () => {
     console.log(`Serveur démarré sur http://localhost:${PORT}`);
 });
+
+module.exports = app;
