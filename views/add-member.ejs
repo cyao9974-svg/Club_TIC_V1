@@ -1,0 +1,50 @@
+<div style="max-width: 600px; margin: 0 auto;">
+    <div class="glass" style="padding: 2.5rem;">
+        <h2 style="margin-bottom: 2rem;"><i class="fas fa-user-plus"></i> Ajouter un Membre</h2>
+        <form action="/members/add" method="POST">
+            <div class="form-group">
+                <label for="nom">Nom</label>
+                <input type="text" id="nom" name="nom" required>
+            </div>
+            <div class="form-group">
+                <label for="prenom">Prénom</label>
+                <input type="text" id="prenom" name="prenom" required>
+            </div>
+            <div class="form-group">
+                <label for="classe">Classe</label>
+                <select id="classe" name="classe" required>
+                    <option value="BTS1">BTS1</option>
+                    <option value="BTS2">BTS2</option>
+                    <option value="Licence1">Licence1</option>
+                    <option value="Licence2">Licence2</option>
+                    <option value="Licence3">Licence3</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="contact">Contact</label>
+                <input type="text" id="contact" name="contact" required>
+            </div>
+            <div class="form-group">
+                <label for="participation">Nombre de participation (Défaut 0)</label>
+                <input type="number" id="participation" name="participation" value="0" min="0">
+            </div>
+            <div class="form-group">
+                <label for="date_inscription">Date d'inscription (Optionnel - Défaut 10 mars 2026 13h15)</label>
+                <input type="datetime-local" id="date_inscription" name="date_inscription">
+            </div>
+            <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+                <button type="submit" class="btn btn-primary">Enregistrer</button>
+                <a href="/dashboard" class="btn" style="background: rgba(255,255,255,0.1); color: white;">Annuler</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    // Initialiser la date par défaut si vide
+    document.addEventListener('DOMContentLoaded', function() {
+        const dateInput = document.getElementById('date_inscription');
+        // On ne force pas si l'utilisateur veut spécifier, mais on affiche le défaut dans le placeholder ou on le gère côté serveur
+        // La consigne dit 10 mars 2026 13:15 par défaut.
+    });
+</script>
