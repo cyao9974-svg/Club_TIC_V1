@@ -20,9 +20,9 @@ router.post('/login', async (req, res) => {
             return res.render('login', { title: 'Connexion', user: null, error: 'Utilisateur non trouvé' });
         }
         
-        const match = await bcrypt.compare(password, user.password);
+        const match = await bcrypt.compare(password, user.mot_de_passe);
         if (match) {
-            req.session.user = { id: user.id, username: user.username, role: user.role };
+            req.session.user = { id: user.id, nom: user.nom, email: user.email, role: user.role };
             res.redirect('/dashboard');
         } else {
             res.render('login', { title: 'Connexion', user: null, error: 'Mot de passe incorrect' });

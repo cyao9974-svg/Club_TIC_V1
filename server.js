@@ -46,7 +46,7 @@ app.get('/dashboard', async (req, res) => {
         
         // Calcul des stats
         const total = members.length;
-        const participations = members.reduce((sum, m) => sum + m.participation, 0);
+        const participations = members.reduce((sum, m) => sum + m.nb_participation, 0);
         const uniqueClasses = new Set(members.map(m => m.classe)).size;
 
         res.render('dashboard', { 
