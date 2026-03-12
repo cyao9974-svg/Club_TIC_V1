@@ -1,25 +1,26 @@
 require('dotenv').config();
 const path = require('path');
-const bcrypt = require('bcryptjs');
+const bcrypt = require('bcrypt');
 
-let pool;
+let db;
 let isPostgres = false;
 
-if (process.env.DATABASE_URL) {
+const dbUrl = process.env.DATABASE_URL || process.env.POSTGRES_URL;
+
+if (dbUrl) {
     const { Pool } = require('pg');
-    pool = new Pool({
-        connectionString: process.env.DATABASE_URL,
+    db = new Pool({
+        connectionString: dbUrl,
         ssl: { rejectUnauthorized: false }
     });
     isPostgres = true;
-    console.log("Mode: PostgreSQL (Cloud)");
+    console.log("Utilisation de PostgreSQL (Cloud)");
 } else {
     const sqlite3 = require('sqlite3').verbose();
     const dbPath = path.resolve(__dirname, 'club_tic.db');
     const sqliteDb = new sqlite3.Database(dbPath);
     
-    // Simuler l'interface PG pour SQLite
-    pool = {
+    db = {
         query: (text, params = []) => {
             const sql = text.replace(/\$\d+/g, '?');
             return new Promise((resolve, reject) => {
@@ -31,79 +32,78 @@ if (process.env.DATABASE_URL) {
                 } else {
                     sqliteDb.run(sql, params, function(err) {
                         if (err) reject(err);
-                        else resolve({ rowCount: this.changes, lastID: this.lastID, rows: [] });
+                        else resolve({ rowCount: this.changes, lastID: this.lastID });
                     });
                 }
             });
         }
     };
-    console.log("Mode: SQLite (Local)");
+    console.log("Utilisation de SQLite (Local)");
 }
 
-const query = (text, params) => pool.query(text, params);
-
-const ensureSchema = async () => {
+const initDb = async () => {
     try {
-        if (isPostgres) {
-            await query(`CREATE TABLE IF NOT EXISTS users (
+        // Table Utilisateurs (Admins)
+        const usersTable = isPostgres 
+            ? `CREATE TABLE IF NOT EXISTS users (
                 id SERIAL PRIMARY KEY, 
-                nom VARCHAR(50) DEFAULT 'Admin',
-                prenom VARCHAR(50) DEFAULT 'User',
-                email VARCHAR(100) UNIQUE, 
+                nom VARCHAR(50) NOT NULL,
+                prenom VARCHAR(50) NOT NULL,
+                email VARCHAR(50) UNIQUE NOT NULL, 
                 mot_de_passe TEXT NOT NULL, 
                 role TEXT DEFAULT 'admin'
-            )`);
-            try { await query("ALTER TABLE users ADD COLUMN IF NOT EXISTS nom VARCHAR(50) DEFAULT 'Admin'"); } catch(e){}
-            try { await query("ALTER TABLE users ADD COLUMN IF NOT EXISTS prenom VARCHAR(50) DEFAULT 'User'"); } catch(e){}
-            
-            await query(`CREATE TABLE IF NOT EXISTS members (
+            )`
+            : `CREATE TABLE IF NOT EXISTS users (
+                id INTEGER PRIMARY KEY AUTOINCREMENT, 
+                nom TEXT NOT NULL,
+                prenom TEXT NOT NULL,
+                email TEXT UNIQUE NOT NULL, 
+                mot_de_passe TEXT NOT NULL, 
+                role TEXT DEFAULT 'admin'
+            )`;
+        await db.query(usersTable);
+
+        // Table Membres
+        const membersTable = isPostgres
+            ? `CREATE TABLE IF NOT EXISTS members (
                 id SERIAL PRIMARY KEY, 
                 nom VARCHAR(50) NOT NULL, 
                 prenom VARCHAR(50) NOT NULL, 
                 classe VARCHAR(10) NOT NULL, 
-                filiere VARCHAR(50) DEFAULT 'N/A',
-                telephone VARCHAR(20) DEFAULT 'N/A',
+                filiere VARCHAR(50) NOT NULL,
+                telephone VARCHAR(20) NOT NULL,
                 nb_participation INTEGER DEFAULT 0, 
-                date_inscription TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            )`);
-            try { await query("ALTER TABLE members ADD COLUMN IF NOT EXISTS filiere VARCHAR(50) DEFAULT 'N/A'"); } catch(e){}
-            try { await query("ALTER TABLE members ADD COLUMN IF NOT EXISTS telephone VARCHAR(20) DEFAULT 'N/A'"); } catch(e){}
-            try { await query("ALTER TABLE members ADD COLUMN IF NOT EXISTS nb_participation INTEGER DEFAULT 0"); } catch(e){}
-        } else {
-            await query(`CREATE TABLE IF NOT EXISTS users (
-                id INTEGER PRIMARY KEY AUTOINCREMENT, 
-                nom TEXT DEFAULT 'Admin',
-                prenom TEXT DEFAULT 'User',
-                email TEXT UNIQUE, 
-                mot_de_passe TEXT NOT NULL, 
-                role TEXT DEFAULT 'admin'
-            )`);
-            await query(`CREATE TABLE IF NOT EXISTS members (
+                date_inscription TIMESTAMP DEFAULT '2026-03-10 13:15:00'
+            )`
+            : `CREATE TABLE IF NOT EXISTS members (
                 id INTEGER PRIMARY KEY AUTOINCREMENT, 
                 nom TEXT NOT NULL, 
                 prenom TEXT NOT NULL, 
                 classe TEXT NOT NULL, 
-                filiere TEXT DEFAULT 'N/A',
-                telephone TEXT DEFAULT 'N/A',
+                filiere TEXT NOT NULL,
+                telephone TEXT NOT NULL,
                 nb_participation INTEGER DEFAULT 0, 
-                date_inscription TEXT DEFAULT CURRENT_TIMESTAMP
-            )`);
-        }
+                date_inscription TEXT DEFAULT '2026-03-10 13:15:00'
+            )`;
+        await db.query(membersTable);
 
         // Admin par défaut
         const adminPassword = await bcrypt.hash('admin123', 10);
-        const adminCheck = await query("SELECT id FROM users WHERE email = $1", ['admin@clubtic.ci']);
+        const adminCheck = await db.query("SELECT id FROM users WHERE email = $1", ['admin@clubtic.ci']);
         if (adminCheck.rows.length === 0) {
-            await query("INSERT INTO users (nom, prenom, email, mot_de_passe, role) VALUES ($1, $2, $3, $4, $5)", 
+            await db.query("INSERT INTO users (nom, prenom, email, mot_de_passe, role) VALUES ($1, $2, $3, $4, $5)", 
                 ['Admin', 'Club TIC', 'admin@clubtic.ci', adminPassword, 'admin']);
+            console.log("Admin créé: admin@clubtic.ci / admin123");
         }
+
     } catch (err) {
-        console.error("Schema sync failed:", err.message);
+        console.error("Erreur d'initialisation DB V2:", err);
     }
 };
 
+initDb();
+
 module.exports = {
-    query,
-    isPostgres,
-    ensureSchema
+    query: (text, params) => db.query(text, params),
+    isPostgres
 };
