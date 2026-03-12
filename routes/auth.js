@@ -11,9 +11,9 @@ router.get('/login', (req, res) => {
 
 // Traitement du login
 router.post('/login', async (req, res) => {
-    const { username, password } = req.body;
+    const { email, password } = req.body;
     try {
-        const result = await db.query("SELECT * FROM users WHERE username = $1", [username]);
+        const result = await db.query("SELECT * FROM users WHERE email = $1", [email]);
         const user = result.rows[0];
 
         if (!user) {

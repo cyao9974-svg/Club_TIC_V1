@@ -1,0 +1,53 @@
+<div style="max-width: 800px; margin: 4rem auto; text-align: center;">
+    <h1 style="font-size: 3rem; margin-bottom: 1rem; background: linear-gradient(to right, var(--primary), var(--secondary)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;">Bienvenue au Club TIC</h1>
+    <p style="color: var(--text-muted); font-size: 1.2rem; margin-bottom: 3rem;">Inscrivez-vous dès maintenant pour rejoindre la communauté et suivre vos participations.</p>
+
+    <div class="glass" style="padding: 3rem; text-align: left;">
+        <h2 style="margin-bottom: 2rem;"><i class="fas fa-user-plus"></i> Formulaire d'Adhésion</h2>
+        <form action="/members/public-join" method="POST">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+                <div class="form-group">
+                    <label for="nom">Nom</label>
+                    <input type="text" id="nom" name="nom" required placeholder="Ex: Kouassi">
+                </div>
+                <div class="form-group">
+                    <label for="prenom">Prénom</label>
+                    <input type="text" id="prenom" name="prenom" required placeholder="Ex: Jean">
+                </div>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+                <div class="form-group">
+                    <label for="classe">Classe</label>
+                    <select id="classe" name="classe" required>
+                        <option value="BTS1">BTS1</option>
+                        <option value="BTS2">BTS2</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="filiere">Filière</label>
+                    <input type="text" id="filiere" name="filiere" required placeholder="Ex: IDA, RIT, etc.">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="telephone">Numéro de Téléphone</label>
+                <input type="text" id="telephone" name="telephone" required placeholder="Ex: 0707070707">
+            </div>
+
+            <div style="margin-top: 1rem; padding: 1rem; background: rgba(99, 102, 241, 0.1); border-radius: 8px; border-left: 4px solid var(--primary); margin-bottom: 2rem;">
+                <p style="font-size: 0.9rem; color: var(--text-muted);">
+                    <i class="fas fa-info-circle"></i> En vous inscrivant, vous pourrez consulter votre statut et vos participations dans le tableau public.
+                </p>
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="font-size: 1.1rem; padding: 1rem;">Valider mon inscription</button>
+        </form>
+    </div>
+
+    <div style="margin-top: 3rem;">
+        <a href="/dashboard" style="color: var(--text-muted); text-decoration: none;">
+            <i class="fas fa-table"></i> Consulter la liste des membres
+        </a>
+    </div>
+</div>

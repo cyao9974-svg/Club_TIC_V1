@@ -10,28 +10,30 @@
                 <label for="prenom">Prénom</label>
                 <input type="text" id="prenom" name="prenom" value="<%= member.prenom %>" required>
             </div>
-            <div class="form-group">
-                <label for="classe">Classe</label>
-                <select id="classe" name="classe" required>
-                    <option value="BTS1" <%= member.classe === 'BTS1' ? 'selected' : '' %>>BTS1</option>
-                    <option value="BTS2" <%= member.classe === 'BTS2' ? 'selected' : '' %>>BTS2</option>
-                    <option value="Licence1" <%= member.classe === 'Licence1' ? 'selected' : '' %>>Licence1</option>
-                    <option value="Licence2" <%= member.classe === 'Licence2' ? 'selected' : '' %>>Licence2</option>
-                    <option value="Licence3" <%= member.classe === 'Licence3' ? 'selected' : '' %>>Licence3</option>
-                </select>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="form-group">
+                    <label for="classe">Classe</label>
+                    <select id="classe" name="classe" required>
+                        <option value="BTS1" <%= member.classe === 'BTS1' ? 'selected' : '' %>>BTS1</option>
+                        <option value="BTS2" <%= member.classe === 'BTS2' ? 'selected' : '' %>>BTS2</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="filiere">Filière</label>
+                    <input type="text" id="filiere" name="filiere" value="<%= member.filiere %>" required>
+                </div>
             </div>
             <div class="form-group">
-                <label for="contact">Contact</label>
-                <input type="text" id="contact" name="contact" value="<%= member.contact %>" required>
+                <label for="telephone">Téléphone</label>
+                <input type="text" id="telephone" name="telephone" value="<%= member.telephone %>" required>
             </div>
             <div class="form-group">
-                <label for="participation">Nombre de participation</label>
-                <input type="number" id="participation" name="participation" value="<%= member.participation %>" min="0">
+                <label for="nb_participation">Participations</label>
+                <input type="number" id="nb_participation" name="nb_participation" value="<%= member.nb_participation %>" min="0">
             </div>
             <div class="form-group">
                 <label for="date_inscription">Date d'inscription</label>
                 <input type="text" id="date_inscription" name="date_inscription" value="<%= member.date_inscription %>">
-                <small style="color: var(--text-muted)">Format: YYYY-MM-DD HH:mm:ss</small>
             </div>
             <div style="display: flex; gap: 1rem; margin-top: 2rem;">
                 <button type="submit" class="btn btn-primary">Mettre à jour</button>

@@ -3,34 +3,37 @@
         <h2 style="margin-bottom: 2rem;"><i class="fas fa-user-plus"></i> Ajouter un Membre</h2>
         <form action="/members/add" method="POST">
             <div class="form-group">
-                <label for="nom">Nom</label>
+                <label for="nom" style="color: var(--primary); font-weight: 600;">Nom</label>
                 <input type="text" id="nom" name="nom" required>
             </div>
             <div class="form-group">
-                <label for="prenom">Prénom</label>
+                <label for="prenom" style="color: var(--primary); font-weight: 600;">Prénom</label>
                 <input type="text" id="prenom" name="prenom" required>
             </div>
-            <div class="form-group">
-                <label for="classe">Classe</label>
-                <select id="classe" name="classe" required>
-                    <option value="BTS1">BTS1</option>
-                    <option value="BTS2">BTS2</option>
-                    <option value="Licence1">Licence1</option>
-                    <option value="Licence2">Licence2</option>
-                    <option value="Licence3">Licence3</option>
-                </select>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="form-group">
+                    <label for="classe">Classe</label>
+                    <select id="classe" name="classe" required>
+                        <option value="BTS1">BTS1</option>
+                        <option value="BTS2">BTS2</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="filiere">Filière</label>
+                    <input type="text" id="filiere" name="filiere" required placeholder="Ex: IDA">
+                </div>
             </div>
             <div class="form-group">
-                <label for="contact">Contact</label>
-                <input type="text" id="contact" name="contact" required>
+                <label for="telephone">Téléphone</label>
+                <input type="text" id="telephone" name="telephone" required>
             </div>
             <div class="form-group">
-                <label for="participation">Nombre de participation (Défaut 0)</label>
-                <input type="number" id="participation" name="participation" value="0" min="0">
+                <label for="nb_participation">Participations initiales</label>
+                <input type="number" id="nb_participation" name="nb_participation" value="0" min="0">
             </div>
             <div class="form-group">
-                <label for="date_inscription">Date d'inscription (Optionnel - Défaut 10 mars 2026 13h15)</label>
-                <input type="datetime-local" id="date_inscription" name="date_inscription">
+                <label for="date_inscription">Date d'inscription (Défaut: 10/03/2026 13:15)</label>
+                <input type="text" id="date_inscription" name="date_inscription" placeholder="YYYY-MM-DD HH:mm:ss">
             </div>
             <div style="display: flex; gap: 1rem; margin-top: 2rem;">
                 <button type="submit" class="btn btn-primary">Enregistrer</button>
@@ -39,12 +42,3 @@
         </form>
     </div>
 </div>
-
-<script>
-    // Initialiser la date par défaut si vide
-    document.addEventListener('DOMContentLoaded', function() {
-        const dateInput = document.getElementById('date_inscription');
-        // On ne force pas si l'utilisateur veut spécifier, mais on affiche le défaut dans le placeholder ou on le gère côté serveur
-        // La consigne dit 10 mars 2026 13:15 par défaut.
-    });
-</script>

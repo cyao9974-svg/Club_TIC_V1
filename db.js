@@ -1,69 +1,107 @@
 require('dotenv').config();
-const { Pool } = require('pg');
+const path = require('path');
+const bcrypt = require('bcrypt');
 
-const pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
-    ssl: {
-        rejectUnauthorized: false
-    }
-});
+let db;
+let isPostgres = false;
 
-// Fonction pour initialiser les tables (utile pour le premier déploiement)
+if (process.env.DATABASE_URL) {
+    const { Pool } = require('pg');
+    db = new Pool({
+        connectionString: process.env.DATABASE_URL,
+        ssl: { rejectUnauthorized: false }
+    });
+    isPostgres = true;
+    console.log("Utilisation de PostgreSQL (Cloud)");
+} else {
+    const sqlite3 = require('sqlite3').verbose();
+    const dbPath = path.resolve(__dirname, 'club_tic.db');
+    const sqliteDb = new sqlite3.Database(dbPath);
+    
+    db = {
+        query: (text, params = []) => {
+            const sql = text.replace(/\$\d+/g, '?');
+            return new Promise((resolve, reject) => {
+                if (sql.trim().toLowerCase().startsWith('select')) {
+                    sqliteDb.all(sql, params, (err, rows) => {
+                        if (err) reject(err);
+                        else resolve({ rows });
+                    });
+                } else {
+                    sqliteDb.run(sql, params, function(err) {
+                        if (err) reject(err);
+                        else resolve({ rowCount: this.changes, lastID: this.lastID });
+                    });
+                }
+            });
+        }
+    };
+    console.log("Utilisation de SQLite (Local)");
+}
+
 const initDb = async () => {
-    const client = await pool.connect();
     try {
-        await client.query('BEGIN');
-        
-        // Table Utilisateurs
-        await client.query(`CREATE TABLE IF NOT EXISTS users (
-            id SERIAL PRIMARY KEY,
-            username TEXT UNIQUE NOT NULL,
-            password TEXT NOT NULL,
-            role TEXT NOT NULL
-        )`);
+        // Table Utilisateurs (Admins)
+        const usersTable = isPostgres 
+            ? `CREATE TABLE IF NOT EXISTS users (
+                id SERIAL PRIMARY KEY, 
+                nom VARCHAR(50) NOT NULL,
+                prenom VARCHAR(50) NOT NULL,
+                email VARCHAR(50) UNIQUE NOT NULL, 
+                mot_de_passe TEXT NOT NULL, 
+                role TEXT DEFAULT 'admin'
+            )`
+            : `CREATE TABLE IF NOT EXISTS users (
+                id INTEGER PRIMARY KEY AUTOINCREMENT, 
+                nom TEXT NOT NULL,
+                prenom TEXT NOT NULL,
+                email TEXT UNIQUE NOT NULL, 
+                mot_de_passe TEXT NOT NULL, 
+                role TEXT DEFAULT 'admin'
+            )`;
+        await db.query(usersTable);
 
         // Table Membres
-        await client.query(`CREATE TABLE IF NOT EXISTS members (
-            id SERIAL PRIMARY KEY,
-            nom TEXT NOT NULL,
-            prenom TEXT NOT NULL,
-            classe TEXT NOT NULL,
-            contact TEXT NOT NULL,
-            participation INTEGER DEFAULT 0,
-            date_inscription TEXT DEFAULT '2026-03-10 13:15:00'
-        )`);
+        const membersTable = isPostgres
+            ? `CREATE TABLE IF NOT EXISTS members (
+                id SERIAL PRIMARY KEY, 
+                nom VARCHAR(50) NOT NULL, 
+                prenom VARCHAR(50) NOT NULL, 
+                classe VARCHAR(10) NOT NULL, 
+                filiere VARCHAR(50) NOT NULL,
+                telephone VARCHAR(20) NOT NULL,
+                nb_participation INTEGER DEFAULT 0, 
+                date_inscription TIMESTAMP DEFAULT '2026-03-10 13:15:00'
+            )`
+            : `CREATE TABLE IF NOT EXISTS members (
+                id INTEGER PRIMARY KEY AUTOINCREMENT, 
+                nom TEXT NOT NULL, 
+                prenom TEXT NOT NULL, 
+                classe TEXT NOT NULL, 
+                filiere TEXT NOT NULL,
+                telephone TEXT NOT NULL,
+                nb_participation INTEGER DEFAULT 0, 
+                date_inscription TEXT DEFAULT '2026-03-10 13:15:00'
+            )`;
+        await db.query(membersTable);
 
-        // Insertion des utilisateurs par défaut (admin123 / membre123)
-        // Note: En production, il vaut mieux utiliser des migrations ou un script séparé
-        const bcrypt = require('bcrypt');
+        // Admin par défaut
         const adminPassword = await bcrypt.hash('admin123', 10);
-        const userPassword = await bcrypt.hash('membre123', 10);
-
-        const adminExists = await client.query("SELECT id FROM users WHERE username = 'admin'");
-        if (adminExists.rowCount === 0) {
-            await client.query("INSERT INTO users (username, password, role) VALUES ($1, $2, $3)", ['admin', adminPassword, 'admin']);
-            console.log("Utilisateur Admin créé.");
+        const adminCheck = await db.query("SELECT id FROM users WHERE email = $1", ['admin@clubtic.ci']);
+        if (adminCheck.rows.length === 0) {
+            await db.query("INSERT INTO users (nom, prenom, email, mot_de_passe, role) VALUES ($1, $2, $3, $4, $5)", 
+                ['Admin', 'Club TIC', 'admin@clubtic.ci', adminPassword, 'admin']);
+            console.log("Admin créé: admin@clubtic.ci / admin123");
         }
 
-        const memberExists = await client.query("SELECT id FROM users WHERE username = 'membre'");
-        if (memberExists.rowCount === 0) {
-            await client.query("INSERT INTO users (username, password, role) VALUES ($1, $2, $3)", ['membre', userPassword, 'membre']);
-            console.log("Utilisateur Membre créé.");
-        }
-
-        await client.query('COMMIT');
-    } catch (e) {
-        await client.query('ROLLBACK');
-        console.error("Erreur d'initialisation DB:", e);
-    } finally {
-        client.release();
+    } catch (err) {
+        console.error("Erreur d'initialisation DB V2:", err);
     }
 };
 
-// Initialisation au démarrage (Optionnel si géré par Vercel)
 initDb();
 
 module.exports = {
-    query: (text, params) => pool.query(text, params),
-    pool: pool
+    query: (text, params) => db.query(text, params),
+    isPostgres
 };

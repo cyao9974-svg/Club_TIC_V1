@@ -1,19 +1,20 @@
 <div class="dashboard-header">
-    <h1>Tableau de Bord</h1>
-    <% if (user.role === 'admin') { %>
+    <h1>Liste des Membres</h1>
+    <% if (user && user.role === 'admin') { %>
         <a href="/members/add" class="btn btn-primary" style="width: auto; padding: 0.8rem 1.5rem;">
             <i class="fas fa-plus"></i> Ajouter un Membre
         </a>
     <% } %>
 </div>
 
+<% if (user && user.role === 'admin') { %>
 <div class="stats-grid">
     <div class="stat-card glass">
         <h3>Total Membres</h3>
         <div class="value"><%= stats.total %></div>
     </div>
     <div class="stat-card glass">
-        <h3>Participations Totales</h3>
+        <h3>Participations</h3>
         <div class="value"><%= stats.participations %></div>
     </div>
     <div class="stat-card glass">
@@ -21,11 +22,12 @@
         <div class="value"><%= stats.classes %></div>
     </div>
 </div>
+<% } %>
 
 <div class="glass" style="padding: 1.5rem; margin-bottom: 2rem;">
     <div style="display: flex; gap: 1rem; align-items: center;">
         <i class="fas fa-search" style="color: var(--text-muted);"></i>
-        <input type="text" id="searchInput" placeholder="Rechercher par nom, prénom ou classe..." 
+        <input type="text" id="searchInput" placeholder="Rechercher par nom, filière ou classe..." 
                style="flex: 1; background: transparent; border: none; color: white; outline: none; font-size: 1.1rem;"
                onkeyup="filterMembers()">
     </div>
@@ -38,10 +40,11 @@
                 <th>Nom</th>
                 <th>Prénom</th>
                 <th>Classe</th>
-                <th>Contact</th>
-                <th>Participation</th>
-                <th>Date Inscription</th>
-                <% if (user.role === 'admin') { %>
+                <th>Filière</th>
+                <th>Téléphone</th>
+                <th>Part.</th>
+                <th>Inscription</th>
+                <% if (user && user.role === 'admin') { %>
                     <th>Actions</th>
                 <% } %>
             </tr>
@@ -52,21 +55,24 @@
                     <td><%= member.nom %></td>
                     <td><%= member.prenom %></td>
                     <td><span class="badge badge-<%= member.classe.toLowerCase() %>"><%= member.classe %></span></td>
-                    <td><%= member.contact %></td>
+                    <td><%= member.filiere %></td>
+                    <td><%= member.telephone %></td>
                     <td style="text-align: center;">
-                        <strong><%= member.participation %></strong>
-                        <% if (user.role === 'admin') { %>
+                        <strong><%= member.nb_participation %></strong>
+                        <% if (user && user.role === 'admin') { %>
                             <button onclick="incrementParticipation(<%= member.id %>)" 
-                                    style="background: none; border: none; color: var(--primary); cursor: pointer; margin-left: 10px;">
+                                    style="background: none; border: none; color: var(--primary); cursor: pointer; margin-left: 5px;">
                                 <i class="fas fa-plus-circle"></i>
                             </button>
                         <% } %>
                     </td>
-                    <td><%= member.date_inscription %></td>
-                    <% if (user.role === 'admin') { %>
+                    <td style="font-size: 0.85rem; color: var(--text-muted);"><%= member.date_inscription %></td>
+                    <% if (user && user.role === 'admin') { %>
                         <td>
-                            <a href="/members/edit/<%= member.id %>" style="color: var(--primary); margin-right: 15px;"><i class="fas fa-edit"></i></a>
-                            <a href="#" onclick="deleteMember(<%= member.id %>)" style="color: var(--danger);"><i class="fas fa-trash"></i></a>
+                            <div style="display: flex; gap: 10px;">
+                                <a href="/members/edit/<%= member.id %>" style="color: var(--primary);"><i class="fas fa-edit"></i></a>
+                                <a href="#" onclick="deleteMember(<%= member.id %>)" style="color: var(--danger);"><i class="fas fa-trash"></i></a>
+                            </div>
                         </td>
                     <% } %>
                 </tr>
@@ -85,11 +91,11 @@ function filterMembers() {
     for (let i = 1; i < tr.length; i++) {
         let tdNom = tr[i].getElementsByTagName('td')[0];
         let tdPrenom = tr[i].getElementsByTagName('td')[1];
-        let tdClasse = tr[i].getElementsByTagName('td')[2];
-        if (tdNom || tdPrenom || tdClasse) {
+        let tdFiliere = tr[i].getElementsByTagName('td')[3];
+        if (tdNom || tdPrenom || tdFiliere) {
             let txtValue = (tdNom.textContent || tdNom.innerText) + ' ' + 
                            (tdPrenom.textContent || tdPrenom.innerText) + ' ' + 
-                           (tdClasse.textContent || tdClasse.innerText);
+                           (tdFiliere.textContent || tdFiliere.innerText);
             if (txtValue.toLowerCase().indexOf(filter) > -1) {
                 tr[i].style.display = "";
             } else {
@@ -100,14 +106,14 @@ function filterMembers() {
 }
 
 async function incrementParticipation(id) {
-    if (confirm('Incrémenter la participation de ce membre ?')) {
+    if (confirm('Incrémenter la participation ?')) {
         const response = await fetch(`/members/increment/${id}`, { method: 'POST' });
         if (response.ok) location.reload();
     }
 }
 
 async function deleteMember(id) {
-    if (confirm('Êtes-vous sûr de vouloir supprimer ce membre ?')) {
+    if (confirm('Supprimer ce membre définitivement ?')) {
         const response = await fetch(`/members/delete/${id}`, { method: 'POST' });
         if (response.ok) location.reload();
     }

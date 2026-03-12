@@ -35,9 +35,11 @@ const isAuthenticated = (req, res, next) => {
     else res.redirect('/auth/login');
 };
 
-app.get('/', (req, res) => res.redirect('/auth/login'));
+app.get('/', (req, res) => {
+    res.render('index', { title: 'Accueil', user: req.session.user || null });
+});
 
-app.get('/dashboard', isAuthenticated, async (req, res) => {
+app.get('/dashboard', async (req, res) => {
     try {
         const result = await db.query("SELECT * FROM members ORDER BY id ASC");
         const members = result.rows;

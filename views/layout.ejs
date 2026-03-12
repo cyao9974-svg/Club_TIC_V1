@@ -10,15 +10,16 @@
 <body>
     <nav>
         <div class="logo">CLUB TIC</div>
-        <ul class="nav-links">
+        <ul class="nav-links" style="display: flex;">
+            <li><a href="/"><i class="fas fa-home"></i> Accueil</a></li>
+            <li><a href="/dashboard"><i class="fas fa-list"></i> Liste des Membres</a></li>
             <% if (user) { %>
-                <li><a href="/dashboard"><i class="fas fa-home"></i> Dashboard</a></li>
                 <% if (user.role === 'admin') { %>
                     <li><a href="/members/export"><i class="fas fa-file-excel"></i> Export Excel</a></li>
                 <% } %>
-                <li><a href="/auth/logout"><i class="fas fa-sign-out-alt"></i> Déconnexion</a></li>
+                <li><a href="/auth/logout" style="color: var(--danger);"><i class="fas fa-sign-out-alt"></i> Quitter (<%= user.nom %>)</a></li>
             <% } else { %>
-                <li><a href="/auth/login">Connexion</a></li>
+                <li><a href="/auth/login"><i class="fas fa-lock"></i> Administration</a></li>
             <% } %>
         </ul>
     </nav>
