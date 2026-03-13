@@ -1,6 +1,6 @@
 require('dotenv').config();
 const path = require('path');
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 
 let db;
 let isPostgres = false;
@@ -16,7 +16,9 @@ if (dbUrl) {
     isPostgres = true;
     console.log("Utilisation de PostgreSQL (Cloud)");
 } else {
-    const sqlite3 = require('sqlite3').verbose();
+    // Hide require from bundler (Webpack/ncc) to prevent deploy crashes on Vercel
+    // since Vercel Serverless environment lacks SQLite C++ native bindings.
+    const sqlite3 = eval("require('sqlite3')").verbose();
     const dbPath = path.resolve(__dirname, 'club_tic.db');
     const sqliteDb = new sqlite3.Database(dbPath);
     
