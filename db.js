@@ -5,7 +5,7 @@ const bcrypt = require('bcryptjs');
 let db;
 let isPostgres = false;
 
-const dbUrl = process.env.DATABASE_URL || process.env.POSTGRES_URL;
+const dbUrl = process.env.POSTGRES_URL || process.env.DATABASE_URL;
 
 if (dbUrl) {
     const { Pool } = require('pg');
