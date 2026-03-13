@@ -1,0 +1,53 @@
+<div class="container text-center" style="margin-top: 5rem;">
+    <h1 style="font-size: 3rem; margin-bottom: 1rem; color: #fff;">Devenez membre du <span class="text-cyan">Club TIC</span></h1>
+    <p class="text-muted" style="font-size: 1.2rem; margin-bottom: 3rem; max-width: 600px; margin-left: auto; margin-right: auto;">
+        Rejoignez notre communauté de passionnés des NTIC. Remplissez le formulaire ci-dessous pour valider votre adhésion (Saison 2025-2026).
+    </p>
+
+    <div class="center-card-wrapper" style="min-height: auto;">
+        <div class="center-card glass">
+            <h2 style="margin-bottom: 2rem;"><i class="fas fa-user-plus text-cyan"></i> Formulaire d'Adhésion</h2>
+            <form action="/members/public-join" method="POST">
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div class="form-group">
+                        <label for="nom"><i class="fas fa-user"></i> Nom</label>
+                        <input type="text" id="nom" name="nom" required placeholder="Votre nom">
+                    </div>
+                    <div class="form-group">
+                        <label for="prenom"><i class="fas fa-font"></i> Prénom</label>
+                        <input type="text" id="prenom" name="prenom" required placeholder="Votre prénom">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="telephone"><i class="fas fa-phone"></i> Téléphone</label>
+                    <input type="text" id="telephone" name="telephone" required placeholder="Ex: 0505050505">
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div class="form-group">
+                        <label for="classe"><i class="fas fa-graduation-cap"></i> Classe</label>
+                        <select id="classe" name="classe" required>
+                            <option value="">-- Choisir --</option>
+                            <option value="BTS 1">BTS 1</option>
+                            <option value="BTS 2">BTS 2</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="filiere"><i class="fas fa-laptop-code"></i> Filière</label>
+                        <select id="filiere" name="filiere" required>
+                            <option value="">-- Choisir --</option>
+                            <option value="RIT">RIT</option>
+                            <option value="IDA">IDA</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">
+                    <i class="fas fa-check-circle"></i> Valider mon adhésion
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
